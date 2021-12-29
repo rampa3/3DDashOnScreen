@@ -7,7 +7,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{3E49C9BF-C
 	ProjectSection(SolutionItems) = preProject
 		license.txt = license.txt
 		README.md = README.md
-		TODO.txt = TODO.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "3DDashOnScreen", "3DDashOnScreen\3DDashOnScreen.csproj", "{F37E7925-F4EF-4FD2-BB0E-BF8D35E810E2}"

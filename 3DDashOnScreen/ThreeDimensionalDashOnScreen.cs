@@ -13,12 +13,12 @@ namespace ThreeDimensionalDashOnScreen
 	public class ThreeDimensionalDashOnScreen : NeosMod
 	{
 		public override string Name => "3DDashOnScreen";
-		public override string Author => "rampa_3";
+		public override string Author => "rampa3";
 		public override string Version => "1.0.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		public override void OnEngineInit()
 		{
-			Harmony harmony = new Harmony("net.rampa_3.3DDashOnScreen");
+			Harmony harmony = new Harmony("net.rampa3.3DDashOnScreen");
 			harmony.PatchAll();
 			Debug("Dash patched successfully!");
 		}
@@ -28,7 +28,7 @@ namespace ThreeDimensionalDashOnScreen
 		   |                             |
 		   |_____________________________|
 
-				Users present at one point: art0007i, eia485, rampa_3
+				Users present at one point: art0007i, eia485, rampa3
 		*/
 
 		[HarmonyPatch(typeof(Userspace), "OnCommonUpdate")]
