@@ -34,16 +34,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\Neos\app\0Harmony.dll</HintPath>
+      <HintPath>..\..\..\..\..\Programs\x64\Neos\app\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="BaseX">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Neos_Data\Managed\BaseX.dll</HintPath>
+      <HintPath>..\..\..\..\..\Programs\x64\Neos\app\Neos_Data\Managed\BaseX.dll</HintPath>
     </Reference>
     <Reference Include="FrooxEngine">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\NeosVR\Neos_Data\Managed\FrooxEngine.dll</HintPath>
+      <HintPath>..\..\..\..\..\Programs\x64\Neos\app\Neos_Data\Managed\FrooxEngine.dll</HintPath>
     </Reference>
     <Reference Include="NeosModLoader">
-      <HintPath>..\..\..\..\Neos\app\Libraries\NeosModLoader.dll</HintPath>
+      <HintPath>..\..\..\..\..\Programs\x64\Neos\app\Libraries\NeosModLoader.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

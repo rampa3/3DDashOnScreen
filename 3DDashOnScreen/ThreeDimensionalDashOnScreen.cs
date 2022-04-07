@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using NeosModLoader;
 using FrooxEngine;
-using BaseX;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Linq;
@@ -10,14 +9,19 @@ using System.Reflection;
 
 namespace ThreeDimensionalDashOnScreen
 {
-	public class ThreeDimensionalDashOnScreen : NeosMod
+    public class ThreeDimensionalDashOnScreen : NeosMod
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "1.0.0";
+		public override string Version => "2.0.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
+		private static ModConfiguration Config;
+
+
 		public override void OnEngineInit()
 		{
+			Config = GetConfiguration();
+			Config.Save(true);
 			Harmony harmony = new Harmony("net.rampa3.3DDashOnScreen");
 			harmony.PatchAll();
 			Debug("Dash patched successfully!");
@@ -31,10 +35,44 @@ namespace ThreeDimensionalDashOnScreen
 				Users present at one point: art0007i, eia485, rampa3
 		*/
 
+		[AutoRegisterConfigKey]
+		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
+
+		[HarmonyPatch(typeof(InteractiveCameraControl))]
+		class InteractiveCameraControlPatch
+		{
+			[HarmonyTranspiler]
+			[HarmonyPatch("OnAttach")]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var codes = new List<CodeInstruction>(instructions);
+				for (var i = 0; i < codes.Count; i++)
+				{
+					if (codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].opcode == OpCodes.Call && codes[i + 2].opcode == OpCodes.Callvirt && ((MethodInfo)codes[i + 2].operand == typeof(InputInterface).GetMethod("get_VR_Active")) && codes[i + 3].opcode == OpCodes.Brfalse_S)
+					{
+						/*Debug(codes[i]);
+						Debug(codes[i + 1]);
+						Debug(codes[i + 2]);
+						Debug(codes[i + 3]);*/
+						codes[i].opcode = OpCodes.Nop;
+						codes[i + 1].opcode = OpCodes.Nop;
+						codes[i + 2].opcode = OpCodes.Nop;
+						codes[i + 3].opcode = OpCodes.Nop;
+						/*Debug(codes[i]);
+						Debug(codes[i + 1]);
+						Debug(codes[i + 2]);
+						Debug(codes[i + 3]);*/
+					}
+				}
+				return codes.AsEnumerable();
+			}
+		}
+
 		[HarmonyPatch(typeof(Userspace), "OnCommonUpdate")]
 		class KeybindPatch{
 			static void Postfix(Userspace __instance){
-				if(__instance.InputInterface.GetKey(Key.F4)){
+
+				if(__instance.InputInterface.GetKeyDown(Config.GetValue(UI_EDIT_MODE_KEY))){
 					Userspace.UserInterfaceEditMode = !Userspace.UserInterfaceEditMode;
 				}
 			}
