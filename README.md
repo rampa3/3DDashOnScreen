@@ -2,7 +2,7 @@
 
 A [NeosModLoader](https://github.com/zkxs/NeosModLoader) mod for [Neos VR](https://neos.com/) that replaces 2D overlay dash in Screen mode with the regular 3D one.<br>
 Also F4 (now remappable trough mod config) is now the edit mode toggle button since it was removed when the freeform camera was added,
-and spawning of facets and UI in userspace is fixed to not spawn into overlay.<br>Additionally, VR behaviour of camera controls UI is restored too.
+and spawning of facets and UI in userspace is fixed to not spawn into overlay.<br>Additionally, VR behaviour of camera controls UI and notifications are restored too.
 
 ## Installation
 1. Install [NeosModLoader](https://github.com/zkxs/NeosModLoader).
