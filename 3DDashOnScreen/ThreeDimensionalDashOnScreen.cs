@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Linq;
 using System.Reflection;
+using System;
+using BaseX;
 
 
 namespace ThreeDimensionalDashOnScreen
@@ -13,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "2.0.0";
+		public override string Version => "2.1.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 
@@ -37,6 +39,36 @@ namespace ThreeDimensionalDashOnScreen
 
 		[AutoRegisterConfigKey]
 		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
+
+		[HarmonyPatch(typeof(NotificationPanel), "AddNotification", new Type[] { typeof(string), typeof(string), typeof(Uri), typeof(color), typeof(string), typeof(Uri), typeof(IAssetProvider<AudioClip>) })]
+		class NotificationPanelPatch
+		{
+			[HarmonyTranspiler]
+			[HarmonyPatch("AddNotification")]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var codes = new List<CodeInstruction>(instructions);
+				for (var i = 0; i < codes.Count; i++)
+				{
+					if (codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].opcode == OpCodes.Call && ((MethodInfo)codes[i + 1].operand == typeof(InputInterface).GetMethod("get_Slot")) && codes[i + 2].opcode == OpCodes.Ldarg_S && codes[i + 3].opcode == OpCodes.Ldc_R4)
+					{
+						codes[i + 4].opcode = OpCodes.Nop;
+						codes[i + 5].opcode = OpCodes.Nop;
+						codes[i + 6].opcode = OpCodes.Ldc_I4_1;
+					}
+
+					if (codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].opcode == OpCodes.Call && ((MethodInfo)codes[i + 1].operand == typeof(Worker).GetMethod("get_InputInterface")) && codes[i + 2].opcode == OpCodes.Callvirt && ((MethodInfo)codes[i + 2].operand == typeof(InputInterface).GetMethod("get_VR_Active")) && codes[i + 3].opcode == OpCodes.Brtrue_S && codes[i + 4].opcode == OpCodes.Ret)
+					{
+						codes[i].opcode = OpCodes.Nop;
+						codes[i + 1].opcode = OpCodes.Nop;
+						codes[i + 2].opcode = OpCodes.Nop;
+						codes[i + 3].opcode = OpCodes.Nop;
+						codes[i + 4].opcode = OpCodes.Nop;
+					}
+				}
+				return codes.AsEnumerable();
+			}
+		}
 
 		[HarmonyPatch(typeof(InteractiveCameraControl))]
 		class InteractiveCameraControlPatch
