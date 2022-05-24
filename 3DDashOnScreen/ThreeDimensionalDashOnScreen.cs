@@ -15,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "3.1.0";
+		public override string Version => "3.2.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 		private static bool desktopNotificationsPresent = false;
@@ -28,16 +28,22 @@ namespace ThreeDimensionalDashOnScreen
 			Config.Save(true);
 			Harmony harmony = new Harmony("net.rampa3.3DDashOnScreen");
 			//harmony.PatchAll();
-			patchDash(harmony);
-			patchSlotPositioning(harmony);
-			addUIEditKey(harmony);
-			addDesktopControlPanelKeybind(harmony);
-			patchCameraUI(harmony);
-			if(!desktopNotificationsPresent)
+			if (Config.GetValue(MOD_ENABLED))
             {
-				patchNotifications(harmony);
-            }
-			Debug("All patches applied successfully!");
+				patchDash(harmony);
+				patchSlotPositioning(harmony);
+				addUIEditKey(harmony);
+				addDesktopControlPanelKeybind(harmony);
+				patchCameraUI(harmony);
+				if(!desktopNotificationsPresent)
+				{
+					patchNotifications(harmony);
+				}
+				Debug("All patches applied successfully!");
+            } else {
+				Debug("3DDashOnScreen disabled!");
+			}
+			
 		}
 		/*
 		   _______________________________
@@ -63,13 +69,16 @@ namespace ThreeDimensionalDashOnScreen
 		}
 
 		[AutoRegisterConfigKey]
-		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
+		private static ModConfigurationKey<bool> MOD_ENABLED = new ModConfigurationKey<bool>("ModEnabled", "Enabled (requires restart on change)", () => true);
 
 		[AutoRegisterConfigKey]
 		private static ModConfigurationKey<Key> DESKTOP_CONTROL_PANEL_KEY = new ModConfigurationKey<Key>("DesktopControlPanelKey", "Desktop tab control panel key", () => Key.N);
 
 		[AutoRegisterConfigKey]
 		private static ModConfigurationKey<bool> RELEASE_CAM_UI = new ModConfigurationKey<bool>("ReleaseCamUI", "Release Camera Controls UI from its slider (requires restart on change)", () => false);
+
+		[AutoRegisterConfigKey]
+		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
 
 		private static void addDesktopControlPanelKeybind(Harmony harmony)
         {
