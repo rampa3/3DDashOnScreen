@@ -15,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "3.0.0";
+		public override string Version => "3.1.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 		private static bool desktopNotificationsPresent = false;
@@ -31,6 +31,7 @@ namespace ThreeDimensionalDashOnScreen
 			patchDash(harmony);
 			patchSlotPositioning(harmony);
 			addUIEditKey(harmony);
+			addDesktopControlPanelKeybind(harmony);
 			patchCameraUI(harmony);
 			if(!desktopNotificationsPresent)
             {
@@ -65,7 +66,27 @@ namespace ThreeDimensionalDashOnScreen
 		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
 
 		[AutoRegisterConfigKey]
+		private static ModConfigurationKey<Key> DESKTOP_CONTROL_PANEL_KEY = new ModConfigurationKey<Key>("DesktopControlPanelKey", "Desktop tab control panel key", () => Key.N);
+
+		[AutoRegisterConfigKey]
 		private static ModConfigurationKey<bool> RELEASE_CAM_UI = new ModConfigurationKey<bool>("ReleaseCamUI", "Release Camera Controls UI from its slider (requires restart on change)", () => false);
+
+		private static void addDesktopControlPanelKeybind(Harmony harmony)
+        {
+			MethodInfo original = AccessTools.DeclaredMethod(typeof(DesktopController), "OnCommonUpdate", new Type[] { });
+			MethodInfo postfix = AccessTools.DeclaredMethod(typeof(ThreeDimensionalDashOnScreen), nameof(DesktopControlsKeybindPostfix));
+			harmony.Patch(original, postfix: new HarmonyMethod(postfix));
+			Debug("Desktop tab control panel key added!");
+        }
+
+		private static void DesktopControlsKeybindPostfix(DesktopController __instance)
+        {
+			MethodInfo toggleControls = __instance.GetType().GetMethod("ToggleControls", BindingFlags.NonPublic | BindingFlags.Instance);
+			if (__instance.InputInterface.GetKeyDown(Config.GetValue(DESKTOP_CONTROL_PANEL_KEY)))
+			{
+				toggleControls.Invoke(__instance, new Object[] { });
+			}
+		}
 
 		private static void patchNotifications(Harmony harmony)
         {
