@@ -15,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "3.2.0";
+		public override string Version => "3.3.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 		private static bool desktopNotificationsPresent = false;
@@ -35,7 +35,8 @@ namespace ThreeDimensionalDashOnScreen
 				addUIEditKey(harmony);
 				addDesktopControlPanelKeybind(harmony);
 				patchCameraUI(harmony);
-				if(!desktopNotificationsPresent)
+				disableForceItemKeepGrabbed(harmony);
+				if (!desktopNotificationsPresent)
 				{
 					patchNotifications(harmony);
 				}
@@ -79,6 +80,29 @@ namespace ThreeDimensionalDashOnScreen
 
 		[AutoRegisterConfigKey]
 		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
+
+		private static void disableForceItemKeepGrabbed(Harmony harmony)
+        {
+			MethodInfo original = AccessTools.DeclaredMethod(typeof(CommonTool), "OnInputUpdate", new Type[] { });
+			MethodInfo transpiler = AccessTools.DeclaredMethod(typeof(ThreeDimensionalDashOnScreen), nameof(disableForceItemKeepGrabbedTranspiler));
+			harmony.Patch(original, transpiler: new HarmonyMethod(transpiler));
+			Debug("Forcing keep last item held when dash is open patched out!");
+        }
+
+		private static IEnumerable<CodeInstruction> disableForceItemKeepGrabbedTranspiler(IEnumerable<CodeInstruction> instructions)
+        {
+			var codes = new List<CodeInstruction>(instructions);
+			for (var i = 0; i < codes.Count; i++)
+            {
+				if (codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].opcode == OpCodes.Ldfld && codes[i + 2].opcode == OpCodes.Stloc_0 && codes[i + 3].opcode == OpCodes.Ldarg_0 && codes[i + 4].opcode == OpCodes.Call && codes[i + 5].opcode == OpCodes.Callvirt && ((MethodInfo)codes[i + 5].operand == typeof(InputInterface).GetMethod("get_VR_Active")))
+                {
+					codes[i + 3].opcode = OpCodes.Nop;
+					codes[i + 4].opcode = OpCodes.Nop;
+					codes[i + 5].opcode = OpCodes.Ldc_I4_1;
+				}
+            }
+			return codes.AsEnumerable();
+		}
 
 		private static void addDesktopControlPanelKeybind(Harmony harmony)
         {
