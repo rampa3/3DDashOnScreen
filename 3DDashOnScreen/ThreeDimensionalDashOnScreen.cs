@@ -15,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "3.3.0";
+		public override string Version => "3.4.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 		private static bool desktopNotificationsPresent = false;
@@ -210,10 +210,12 @@ namespace ThreeDimensionalDashOnScreen
         }
 		private static void KeybindPostfix(Userspace __instance)
 		{
-
-			if (__instance.InputInterface.GetKeyDown(Config.GetValue(UI_EDIT_MODE_KEY)))
+			if (!__instance.InputInterface.GetKey(Key.Control) && (!__instance.InputInterface.GetKey(Key.Alt) || !__instance.InputInterface.GetKey(Key.AltGr)))
 			{
-				Userspace.UserInterfaceEditMode = !Userspace.UserInterfaceEditMode;
+				if (__instance.InputInterface.GetKeyDown(Config.GetValue(UI_EDIT_MODE_KEY)))
+				{
+					Userspace.UserInterfaceEditMode = !Userspace.UserInterfaceEditMode;
+				}
 			}
 		}
 
