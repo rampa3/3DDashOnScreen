@@ -15,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "3.3.0";
+		public override string Version => "3.4.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 		private static bool desktopNotificationsPresent = false;
@@ -36,6 +36,7 @@ namespace ThreeDimensionalDashOnScreen
 				addDesktopControlPanelKeybind(harmony);
 				patchCameraUI(harmony);
 				disableForceItemKeepGrabbed(harmony);
+				restoreLegacyDashBind(harmony);
 				if (!desktopNotificationsPresent)
 				{
 					patchNotifications(harmony);
@@ -81,6 +82,45 @@ namespace ThreeDimensionalDashOnScreen
 		[AutoRegisterConfigKey]
 		private static ModConfigurationKey<Key> UI_EDIT_MODE_KEY = new ModConfigurationKey<Key>("UIEditModeKey", "UI edit mode key", () => Key.F4);
 
+		[AutoRegisterConfigKey]
+		private static ModConfigurationKey<bool> USE_LEGACY_DASH_BIND = new ModConfigurationKey<bool>("UseLegacyDashBind", "Restore legacy dash toggle bind - Ctrl+Space (requires restart on change)", () => true);
+
+		private static void restoreLegacyDashBind(Harmony harmony)
+        {
+			MethodInfo originalBind = AccessTools.DeclaredMethod(typeof(KeyboardAndMouseBindingGenerator), "Bind", new Type[] { typeof(InputGroup) });
+			MethodInfo originalDash = AccessTools.DeclaredMethod(typeof(UserspaceRadiantDash), "OnCommonUpdate", new Type[] { });
+			MethodInfo transpiler = AccessTools.DeclaredMethod(typeof(ThreeDimensionalDashOnScreen), nameof(RemoveDefaultDashBindTranspiler));
+			MethodInfo postfixDash = AccessTools.DeclaredMethod(typeof(ThreeDimensionalDashOnScreen), nameof(SetCustomDashBindPostfix));
+			harmony.Patch(originalBind, transpiler: new HarmonyMethod(transpiler));
+			harmony.Patch(originalDash, postfix: new HarmonyMethod(postfixDash));
+			Debug("Legacy dash toggle bind restored!");
+		}
+
+		private static IEnumerable<CodeInstruction> RemoveDefaultDashBindTranspiler(IEnumerable<CodeInstruction> instructions)
+        {
+			var codes = new List<CodeInstruction>(instructions);
+			for (var i = 0; i < codes.Count; i++)
+			{
+				if (codes[i].opcode == OpCodes.Ldc_I4_S && codes[i].operand.Equals((sbyte)10) && codes[i + 5].opcode == OpCodes.Ldc_I4_S && codes[i + 5].operand.Equals((sbyte)27) && codes[i + 6].opcode == OpCodes.Call)
+				{
+                    codes.RemoveRange(i + 5, 2);
+                    var legacybind = new List<CodeInstruction>();
+                    legacybind.Add(new CodeInstruction(OpCodes.Ldc_I4_S, (sbyte)32));
+                    MethodInfo keyinput = AccessTools.DeclaredMethod(typeof(InputNode), "key", new Type[] { typeof(Key) });
+                    legacybind.Add(new CodeInstruction(OpCodes.Call, keyinput));
+                    legacybind.Add(new CodeInstruction(OpCodes.Ldc_I4, 513));
+                    legacybind.Add(new CodeInstruction(OpCodes.Call, keyinput));
+                    legacybind.Add(new CodeInstruction(OpCodes.Ldc_I4_1));
+                    legacybind.Add(new CodeInstruction(OpCodes.Ldc_I4_0));
+                    MethodInfo keygate = AccessTools.DeclaredMethod(typeof(InputNode), "gate", new Type[] { typeof(IInputNode<>), typeof(IInputNode<bool>), typeof(bool), typeof(bool) });
+                    legacybind.Add(new CodeInstruction(OpCodes.Call, keygate));
+                    codes.InsertRange(i + 5, legacybind);
+                }
+
+			}
+			return codes.AsEnumerable();
+		}	
+
 		private static void disableForceItemKeepGrabbed(Harmony harmony)
         {
 			MethodInfo original = AccessTools.DeclaredMethod(typeof(CommonTool), "OnInputUpdate", new Type[] { });
@@ -95,12 +135,12 @@ namespace ThreeDimensionalDashOnScreen
 			for (var i = 0; i < codes.Count; i++)
             {
 				if (codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].opcode == OpCodes.Ldfld && codes[i + 2].opcode == OpCodes.Stloc_0 && codes[i + 3].opcode == OpCodes.Ldarg_0 && codes[i + 4].opcode == OpCodes.Call && codes[i + 5].opcode == OpCodes.Callvirt && ((MethodInfo)codes[i + 5].operand == typeof(InputInterface).GetMethod("get_VR_Active")))
-                {
+				{
 					codes[i + 3].opcode = OpCodes.Nop;
 					codes[i + 4].opcode = OpCodes.Nop;
 					codes[i + 5].opcode = OpCodes.Ldc_I4_1;
 				}
-            }
+			}
 			return codes.AsEnumerable();
 		}
 
@@ -210,7 +250,6 @@ namespace ThreeDimensionalDashOnScreen
         }
 		private static void KeybindPostfix(Userspace __instance)
 		{
-
 			if (__instance.InputInterface.GetKeyDown(Config.GetValue(UI_EDIT_MODE_KEY)))
 			{
 				Userspace.UserInterfaceEditMode = !Userspace.UserInterfaceEditMode;
