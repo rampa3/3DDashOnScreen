@@ -15,7 +15,7 @@ namespace ThreeDimensionalDashOnScreen
 	{
 		public override string Name => "3DDashOnScreen";
 		public override string Author => "rampa3";
-		public override string Version => "3.4.0";
+		public override string Version => "3.5.0";
 		public override string Link => "https://github.com/rampa3/3DDashOnScreen";
 		private static ModConfiguration Config;
 		private static bool desktopNotificationsPresent = false;
@@ -106,16 +106,16 @@ namespace ThreeDimensionalDashOnScreen
 
 		private static void addDesktopControlPanelKeybind(Harmony harmony)
         {
-			MethodInfo original = AccessTools.DeclaredMethod(typeof(DesktopController), "OnCommonUpdate", new Type[] { });
-			MethodInfo postfix = AccessTools.DeclaredMethod(typeof(ThreeDimensionalDashOnScreen), nameof(DesktopControlsKeybindPostfix));
-			harmony.Patch(original, postfix: new HarmonyMethod(postfix));
+			MethodInfo originalDesktopControllerOnCommonUpdate = AccessTools.DeclaredMethod(typeof(DesktopController), "OnCommonUpdate", new Type[] { });
+			MethodInfo postfixDesktopControllerOnCommonUpdate = AccessTools.DeclaredMethod(typeof(ThreeDimensionalDashOnScreen), nameof(DesktopControlsKeybindPostfix));
+            harmony.Patch(originalDesktopControllerOnCommonUpdate, postfix: new HarmonyMethod(postfixDesktopControllerOnCommonUpdate));
 			Debug("Desktop tab control panel key added!");
         }
 
 		private static void DesktopControlsKeybindPostfix(DesktopController __instance)
         {
 			MethodInfo toggleControls = __instance.GetType().GetMethod("ToggleControls", BindingFlags.NonPublic | BindingFlags.Instance);
-			if (__instance.InputInterface.GetKeyDown(Config.GetValue(DESKTOP_CONTROL_PANEL_KEY)))
+			if (__instance.InputInterface.GetKeyDown(Config.GetValue(DESKTOP_CONTROL_PANEL_KEY)) && __instance.InputInterface.ScreenActive)
 			{
 				toggleControls.Invoke(__instance, new Object[] { });
 			}
@@ -212,7 +212,7 @@ namespace ThreeDimensionalDashOnScreen
 		{
 			if (!__instance.InputInterface.GetKey(Key.Control) && (!__instance.InputInterface.GetKey(Key.Alt) || !__instance.InputInterface.GetKey(Key.AltGr)))
 			{
-				if (__instance.InputInterface.GetKeyDown(Config.GetValue(UI_EDIT_MODE_KEY)))
+				if (__instance.InputInterface.GetKeyDown(Config.GetValue(UI_EDIT_MODE_KEY)) && __instance.InputInterface.ScreenActive)
 				{
 					Userspace.UserInterfaceEditMode = !Userspace.UserInterfaceEditMode;
 				}
