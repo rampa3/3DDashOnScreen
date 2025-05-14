@@ -1,4 +1,6 @@
-# 3D Dash On Screen
+# THIS IS THE NEOS VERSION OF THE MOD, WHICH IS NOT GOING TO BE SUPPORTED ANYMORE! RESONITE VERSION IS IN REPOSITORY [rampa3/3DDashOnScreenResonite](https://github.com/rampa3/3DDashOnScreenResonite)
+
+# 3D Dash On Screen (!!!FOR NEOS!!!)
 
 A [NeosModLoader](https://github.com/neos-modding-group/NeosModLoader) mod for [Neos VR](https://neos.com/) that replaces 2D overlay dash in Screen mode with the regular 3D one.<br>
 Also F4 (now remappable trough mod config) is now the edit mode toggle button since it was removed when the freeform camera was added,
